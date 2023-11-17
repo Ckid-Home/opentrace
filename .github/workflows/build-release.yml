@@ -68,12 +68,16 @@ jobs:
         cd ${{ matrix.artifact_path }}
         mv ./nexttrace_* ./${{ matrix.nt_fn }}
         chmod +x ./${{ matrix.nt_fn }}
+        {{- if eq matrix.runtime "win-x64" }}
+        zip -r ${{ github.workspace }}/${{ matrix.runtime }}.zip ${{ matrix.pack_target == '' && '.' || matrix.pack_target }}
+        {{- else }}
         tar -cvzf ${{ github.workspace }}/${{ matrix.runtime }}.tar.gz ${{ matrix.pack_target == '' && '.' || matrix.pack_target }}
+        {{- endif }}
 
     - name: Edit release for ${{ matrix.runtime }}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ matrix.runtime }}.tar.gz
-        asset_name: ${{ matrix.runtime }}.tar.gz
+        file: ${{ matrix.runtime }}.{{- if eq matrix.runtime "win-x64" }}zip{{- else }}tar.gz{{- endif }}
+        asset_name: ${{ matrix.runtime }}.{{- if eq matrix.runtime "win-x64" }}zip{{- else }}tar.gz{{- endif }}
         tag: ${{ github.ref }}
